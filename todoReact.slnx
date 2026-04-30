@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/TodoUI/">
+    <Project Path="TodoUI/todoui.esproj">
+      <Build />
+      <Deploy />
+    </Project>
+  </Folder>
+  <Project Path="TodoApi/TodoApi.csproj" />
+</Solution>
