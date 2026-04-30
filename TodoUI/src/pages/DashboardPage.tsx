@@ -116,29 +116,48 @@ export default function DashboardPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {todos.map((todo) => (
-                                    <tr key={todo.id} className={todo.isCompleted ? "completed" : ""}>
-                                        <td>
-                                            <input
-                                                type="checkbox"
-                                                checked={todo.isCompleted}
-                                                onChange={() => handleToggleTodo(todo)}
-                                                className="todo-checkbox"
-                                            />
-                                        </td>
-                                        <td className="todo-title">{todo.title}</td>
-                                        <td>{todo.createdAt ? new Date(todo.createdAt).toLocaleDateString() : "-"}</td>
-                                        <td>{todo.dueDate ? new Date(todo.dueDate).toLocaleDateString() : "-"}</td>
-                                        <td>
-                                            <button
-                                                className="delete-btn"
-                                                onClick={() => handleDeleteTodo(todo.id!)}
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {todos.map((todo) => {
+                                    const today = new Date();
+                                    const dueDate = todo.dueDate ? new Date(todo.dueDate) : null;
+
+                                    // Reset hours to compare only date parts
+                                    today.setHours(0, 0, 0, 0);
+                                    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+
+                                    let rowClass = "";
+                                    if (dueDate) {
+                                        if (dueDate < today) {
+                                            rowClass = "overdue"; // overdue in the past
+                                        } else if (dueDate.getTime() === today.getTime() || dueDate.getTime() === new Date(today.getTime() + 86400000).getTime()) {
+                                            // due today or tomorrow
+                                            rowClass = "due-soon";
+                                        }
+                                    }
+
+                                    return (
+                                        <tr key={todo.id} className={`${todo.isCompleted ? "completed" : ""} ${rowClass}`}>
+                                            <td>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={todo.isCompleted}
+                                                    onChange={() => handleToggleTodo(todo)}
+                                                    className="todo-checkbox"
+                                                />
+                                            </td>
+                                            <td className="todo-title">{todo.title}</td>
+                                            <td>{todo.createdAt ? new Date(todo.createdAt).toLocaleDateString() : "-"}</td>
+                                            <td>{todo.dueDate ? new Date(todo.dueDate).toLocaleDateString() : "-"}</td>
+                                            <td>
+                                                <button
+                                                    className="delete-btn"
+                                                    onClick={() => handleDeleteTodo(todo.id!)}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     )}

@@ -159,6 +159,14 @@
     opacity: 0.7;
 }
 
+.overdue {
+    background-color: #ffcccc; /* light red */
+}
+
+.due-soon {
+    background-color: #fff4cc; /* light yellow */
+}
+
 .todos-table tbody tr.completed .todo-title {
     text-decoration: line-through;
     color: #999;
