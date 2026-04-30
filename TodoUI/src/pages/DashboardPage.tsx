@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { todoApi, type Todo } from "../api/todos";
 import "../styles/Dashboard.css";
+import TodosTable from "../components/TodosTable";
 
 export default function DashboardPage() {
     const { logout } = useAuth();
@@ -116,70 +117,12 @@ export default function DashboardPage() {
                     ) : todos.length === 0 ? (
                         <p className="no-todos">No todos yet. Create one to get started!</p>
                     ) : (
-                        <table className="todos-table">
-                            <thead>
-                                <tr>
-                                    <th>Status</th>
-                                    <th>Title</th>
-                                    <th>Created</th>
-                                    <th>Due Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {todos.filter(todo => displayArchive ? todo.isCompleted : !todo.isCompleted).map((todo) => {
-                                    const today = new Date();
-                                    const dueDate = todo.dueDate ? new Date(todo.dueDate) : null;
-
-                                    // Reset hours to compare only date parts
-                                    today.setHours(0, 0, 0, 0);
-                                    if (dueDate) dueDate.setHours(0, 0, 0, 0);
-
-                                    let rowClass = "";
-                                    if (displayArchive) {
-                                        // Archived todos: greyed out
-                                        rowClass = "archived";
-                                    } else {
-                                        // Current todos: highlight based on due date
-                                        if (dueDate) {
-                                            if (dueDate < today) {
-                                                rowClass = "overdue"; // overdue in the past
-                                            } else if (
-                                                dueDate.getTime() === today.getTime() ||
-                                                dueDate.getTime() === new Date(today.getTime() + 86400000).getTime()
-                                            ) {
-                                                // due today or tomorrow
-                                                rowClass = "due-soon";
-                                            }
-                                        }
-                                    }
-
-                                    return (
-                                        <tr key={todo.id} className={`${todo.isCompleted ? "completed" : ""} ${rowClass}`}>
-                                            <td>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={todo.isCompleted}
-                                                    onChange={() => handleToggleTodo(todo)}
-                                                    className="todo-checkbox"
-                                                />
-                                            </td>
-                                            <td className="todo-title">{todo.title}</td>
-                                            <td>{todo.createdAt ? new Date(todo.createdAt).toLocaleDateString() : "-"}</td>
-                                            <td>{todo.dueDate ? new Date(todo.dueDate).toLocaleDateString() : "-"}</td>
-                                            <td>
-                                                <button
-                                                    className="delete-btn"
-                                                    onClick={() => handleDeleteTodo(todo.id!)}
-                                                >
-                                                    Delete
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                        <TodosTable
+                            todos={todos}
+                            onToggle={handleToggleTodo}
+                            onDelete={handleDeleteTodo}
+                            displayArchive={displayArchive}
+                        />
                     )}
                 </div>
             </div>
