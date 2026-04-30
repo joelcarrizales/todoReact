@@ -20,6 +20,7 @@ CopilotIndices/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+todo.db*
 
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt

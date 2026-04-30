@@ -7,6 +7,7 @@ export default function DashboardPage() {
     const { logout } = useAuth();
     const [todos, setTodos] = useState<Todo[]>([]);
     const [title, setTitle] = useState("");
+    const [dueDate, setDueDate] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -33,9 +34,10 @@ export default function DashboardPage() {
         if (!title.trim()) return;
 
         try {
-            const newTodo = await todoApi.createTodo(title.trim());
+            const newTodo = await todoApi.createTodo(title.trim(), dueDate || undefined);
             setTodos([...todos, newTodo]);
             setTitle("");
+            setDueDate("");
         } catch (err) {
             setError("Failed to add todo");
             console.error(err);
@@ -82,6 +84,13 @@ export default function DashboardPage() {
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             className="todo-input"
+                        />
+                        <input
+                            type="date"
+                            value={dueDate}
+                            onChange={(e) => setDueDate(e.target.value)}
+                            className="todo-date-input"
+                            title="Due date (optional)"
                         />
                         <button type="submit" className="add-btn">Add Todo</button>
                     </form>

@@ -53,6 +53,7 @@
 }
 
 .add-todo-form {
+    padding-top: 16px;
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
@@ -69,6 +70,21 @@
 }
 
 .todo-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.todo-date-input {
+    flex: 0 0 auto;
+    min-width: 150px;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.todo-date-input:focus {
     outline: none;
     border-color: #667eea;
 }
