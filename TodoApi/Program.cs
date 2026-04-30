@@ -67,6 +67,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureDeleted();
     db.Database.EnsureCreated();
 }
 
@@ -152,6 +153,78 @@ auth.MapPost("/reset-password", async (ResetPasswordRequest request, UserManager
     {
         return Results.BadRequest(new AuthResponse(false, Errors: ["Invalid request."]));
     }
+});
+#endregion
+
+#region TodoEndpoints
+var todos = app.MapGroup("/api/todos").RequireAuthorization();
+
+todos.MapGet("/", async (AppDbContext db, HttpContext context) =>
+{
+    var userEmail = context.User.FindFirst(ClaimTypes.Email)?.Value;
+    if (string.IsNullOrEmpty(userEmail))
+        return Results.Unauthorized();
+
+    return Results.Ok(await db.Todos.Where(t => t.UserEmail == userEmail).ToListAsync());
+});
+
+todos.MapPost("/", async (CreateTodoRequest request, AppDbContext db, HttpContext context) =>
+{
+    var userEmail = context.User.FindFirst(ClaimTypes.Email)?.Value;
+    if (string.IsNullOrEmpty(userEmail))
+        return Results.Unauthorized();
+
+    var todo = new Todo
+    {
+        Title = request.Title,
+        UserEmail = userEmail,
+        CreatedAt = DateOnly.FromDateTime(DateTime.Now),
+        DueDate = request.DueDate
+    };
+
+    db.Todos.Add(todo);
+    await db.SaveChangesAsync();
+    return Results.Created($"/api/todos/{todo.Id}", todo);
+});
+
+todos.MapPut("/{id}", async (int id, Todo updatedTodo, AppDbContext db, HttpContext context) =>
+{
+    var userEmail = context.User.FindFirst(ClaimTypes.Email)?.Value;
+    if (string.IsNullOrEmpty(userEmail))
+        return Results.Unauthorized();
+
+    var todo = await db.Todos.FindAsync(id);
+    if (todo == null)
+        return Results.NotFound();
+
+    if (todo.UserEmail != userEmail)
+        return Results.Forbid();
+
+    todo.Title = updatedTodo.Title;
+    todo.IsCompleted = updatedTodo.IsCompleted;
+    todo.DueDate = updatedTodo.DueDate;
+    todo.CompletedAt = updatedTodo.CompletedAt;
+
+    await db.SaveChangesAsync();
+    return Results.Ok(todo);
+});
+
+todos.MapDelete("/{id}", async (int id, AppDbContext db, HttpContext context) =>
+{
+    var userEmail = context.User.FindFirst(ClaimTypes.Email)?.Value;
+    if (string.IsNullOrEmpty(userEmail))
+        return Results.Unauthorized();
+
+    var todo = await db.Todos.FindAsync(id);
+    if (todo == null)
+        return Results.NotFound();
+
+    if (todo.UserEmail != userEmail)
+        return Results.Forbid();
+
+    db.Todos.Remove(todo);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
 });
 #endregion
 
