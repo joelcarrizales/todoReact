@@ -67,7 +67,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureDeleted();
+    //  db.Database.EnsureDeleted(); // uncomment this line if you want to delete the database on each run (useful for development)
     db.Database.EnsureCreated();
 }
 

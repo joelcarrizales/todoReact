@@ -6,10 +6,13 @@ import "../styles/Dashboard.css";
 export default function DashboardPage() {
     const { logout } = useAuth();
     const [todos, setTodos] = useState<Todo[]>([]);
+    const [displayArchive, setDisplayArchive] = useState(false);
     const [title, setTitle] = useState("");
     const [dueDate, setDueDate] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const tableTitle = displayArchive ? "Your Archived Todos" : "Your Current Todos";
+    const buttonText = displayArchive ? "Show Current Todos" : "Show Archived Todos";
 
     useEffect(() => {
         fetchTodos();
@@ -99,7 +102,15 @@ export default function DashboardPage() {
                 {error && <div className="error-message">{error}</div>}
 
                 <div className="todos-section">
-                    <h2>Your Todos</h2>
+                    <h2>{tableTitle}</h2>
+                    <div className="toggle-button">
+                        <button
+                            className="toggle-btn"
+                            onClick={() => setDisplayArchive(!displayArchive)}
+                        >
+                            {buttonText}
+                        </button>
+                    </div>
                     {loading ? (
                         <p>Loading todos...</p>
                     ) : todos.length === 0 ? (
@@ -116,7 +127,7 @@ export default function DashboardPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {todos.map((todo) => {
+                                {todos.filter(todo => displayArchive ? todo.isCompleted : !todo.isCompleted).map((todo) => {
                                     const today = new Date();
                                     const dueDate = todo.dueDate ? new Date(todo.dueDate) : null;
 
@@ -125,12 +136,21 @@ export default function DashboardPage() {
                                     if (dueDate) dueDate.setHours(0, 0, 0, 0);
 
                                     let rowClass = "";
-                                    if (dueDate) {
-                                        if (dueDate < today) {
-                                            rowClass = "overdue"; // overdue in the past
-                                        } else if (dueDate.getTime() === today.getTime() || dueDate.getTime() === new Date(today.getTime() + 86400000).getTime()) {
-                                            // due today or tomorrow
-                                            rowClass = "due-soon";
+                                    if (displayArchive) {
+                                        // Archived todos: greyed out
+                                        rowClass = "archived";
+                                    } else {
+                                        // Current todos: highlight based on due date
+                                        if (dueDate) {
+                                            if (dueDate < today) {
+                                                rowClass = "overdue"; // overdue in the past
+                                            } else if (
+                                                dueDate.getTime() === today.getTime() ||
+                                                dueDate.getTime() === new Date(today.getTime() + 86400000).getTime()
+                                            ) {
+                                                // due today or tomorrow
+                                                rowClass = "due-soon";
+                                            }
                                         }
                                     }
 
