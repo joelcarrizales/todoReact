@@ -5,10 +5,11 @@ interface TodosTableProps {
     todos: Todo[];
     onToggle: (todo: Todo) => void;
     onDelete: (id: number) => void;
+    onEdit: (todo: Todo) => void;
     displayArchive: boolean;
 }
 
-const TodosTable: React.FC<TodosTableProps> = ({ todos, onToggle, onDelete, displayArchive }) => {
+const TodosTable: React.FC<TodosTableProps> = ({ todos, onToggle, onDelete, onEdit, displayArchive }) => {
     const today = new Date();
 
     return (
@@ -24,7 +25,7 @@ const TodosTable: React.FC<TodosTableProps> = ({ todos, onToggle, onDelete, disp
             </thead>
             <tbody>
                 {todos.filter(todo => displayArchive ? todo.isCompleted : !todo.isCompleted).map((todo) => {
-                    const dueDate = todo.dueDate ? new Date(todo.dueDate) : null;
+                    const dueDate = todo.dueDate ? new Date(todo.dueDate + "T00:00:00") : null;
 
                     // Reset hours for comparison
                     today.setHours(0, 0, 0, 0);
@@ -57,9 +58,14 @@ const TodosTable: React.FC<TodosTableProps> = ({ todos, onToggle, onDelete, disp
                                 />
                             </td>
                             <td className="todo-title">{todo.title}</td>
-                            <td>{todo.createdAt ? new Date(todo.createdAt).toLocaleDateString() : "-"}</td>
-                            <td>{todo.dueDate ? new Date(todo.dueDate).toLocaleDateString() : "-"}</td>
+                            <td>{todo.createdAt ? new Date(todo.createdAt + "T00:00:00").toLocaleDateString() : "-"}</td>
+                            <td>{todo.dueDate ? new Date(todo.dueDate + "T00:00:00").toLocaleDateString() : "-"}</td>
                             <td>
+                                {!todo.isCompleted && (
+                                    <button className="edit-btn" onClick={() => onEdit(todo)}>
+                                        Edit
+                                    </button>
+                                )}
                                 <button className="delete-btn" onClick={() => onDelete(todo.id!)}>
                                     Delete
                                 </button>

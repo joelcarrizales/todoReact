@@ -12,6 +12,9 @@ export default function DashboardPage() {
     const [dueDate, setDueDate] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editDueDate, setEditDueDate] = useState("");
     const tableTitle = displayArchive ? "Your Archived Todos" : "Your Current Todos";
     const buttonText = displayArchive ? "Show Current Todos" : "Show Archived Todos";
 
@@ -71,6 +74,38 @@ export default function DashboardPage() {
         }
     };
 
+    const handleEditTodo = (todo: Todo) => {
+        setEditingTodo(todo);
+        setEditTitle(todo.title);
+        setEditDueDate(todo.dueDate || "");
+    };
+
+    const handleSaveEdit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingTodo || !editTitle.trim()) return;
+
+        try {
+            const updated = await todoApi.updateTodo(editingTodo.id!, {
+                ...editingTodo,
+                title: editTitle.trim(),
+                dueDate: editDueDate || null,
+            });
+            setTodos(todos.map(t => t.id === updated.id ? updated : t));
+            setEditingTodo(null);
+            setEditTitle("");
+            setEditDueDate("");
+        } catch (err) {
+            setError("Failed to update todo");
+            console.error(err);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setEditingTodo(null);
+        setEditTitle("");
+        setEditDueDate("");
+    };
+
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
@@ -121,11 +156,47 @@ export default function DashboardPage() {
                             todos={todos}
                             onToggle={handleToggleTodo}
                             onDelete={handleDeleteTodo}
+                            onEdit={handleEditTodo}
                             displayArchive={displayArchive}
                         />
                     )}
                 </div>
             </div>
+
+            {editingTodo && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h2>Edit Todo</h2>
+                        <form onSubmit={handleSaveEdit} className="edit-todo-form">
+                            <div className="form-group">
+                                <label htmlFor="edit-title">Title</label>
+                                <input
+                                    id="edit-title"
+                                    type="text"
+                                    placeholder="Todo title"
+                                    value={editTitle}
+                                    onChange={(e) => setEditTitle(e.target.value)}
+                                    className="todo-input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="edit-due-date">Due Date</label>
+                                <input
+                                    id="edit-due-date"
+                                    type="date"
+                                    value={editDueDate}
+                                    onChange={(e) => setEditDueDate(e.target.value)}
+                                    className="todo-date-input"
+                                />
+                            </div>
+                            <div className="modal-buttons">
+                                <button type="submit" className="save-btn">Save Changes</button>
+                                <button type="button" className="cancel-btn" onClick={handleCancelEdit}>Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
