@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import TodosTable from '../src/components/TodosTable';
-import type { Todo } from '../src/api/todos';
+import TodosTable from '../TodosTable';
+import type { Todo } from '../../api/todos';
 
 describe('TodosTable', () => {
   const mockOnToggle = vi.fn();

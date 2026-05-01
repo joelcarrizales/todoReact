@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { authApi, type AuthResponse } from '../src/api/auth';
+import { authApi, type AuthResponse } from '../auth';
 
 // Mock fetch
 global.fetch = vi.fn();

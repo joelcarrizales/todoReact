@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { todoApi, type Todo } from '../src/api/todos';
+import { todoApi, type Todo } from '../todos';
 
 // Mock fetch
 global.fetch = vi.fn();

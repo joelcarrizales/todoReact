@@ -2,13 +2,13 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
-import DashboardPage from '../src/pages/DashboardPage';
-import { AuthProvider } from '../src/context/AuthContext';
-import * as todosApi from '../src/api/todos';
-import type { Todo } from '../src/api/todos';
+import DashboardPage from '../DashboardPage';
+import { AuthProvider } from '../../../src/context/AuthContext';
+import * as todosApi from '../../../src/api/todos';
+import type { Todo } from '../../../src/api/todos';
 
 // Mock the todos API
-vi.mock('../src/api/todos');
+vi.mock('../../../src/api/todos');
 const mockTodoApi = todosApi as any;
 
 const mockLogout = vi.fn();
