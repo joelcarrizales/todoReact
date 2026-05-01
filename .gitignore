@@ -20,10 +20,12 @@ CopilotIndices/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+todo.db*
 
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 .vs/
+.vscode/
 
 # NuGet Packages
 *.nupkg
@@ -53,7 +55,7 @@ nunit-*.xml
 # React
 
 # dependencies
-/node_modules
+*/node_modules/
 /.pnp
 .pnp.js
 
