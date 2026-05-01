@@ -15,11 +15,8 @@ A todo application with a .NET 10 minimal API backend and React (Vite + TypeScri
 ## Tech Stack
 
 | Layer    | Technology                                      |
-
 |----------|-------------------------------------------------|
-
 | Backend  | .NET 10, Minimal APIs, ASP.NET Core Identity, SQLite, JWT, xUnit, Moq, Microsoft.AspNetCore.Mvc.Testing |
-
 | Frontend | React 19, Vite, TypeScript, React Router, Vitest, React Testing Library |
 
 ## Getting Started 
@@ -27,7 +24,6 @@ A todo application with a .NET 10 minimal API backend and React (Vite + TypeScri
 ### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-
 - [Node.js 22+](https://nodejs.org/)
 
 ### Backend
@@ -61,15 +57,10 @@ The app starts at `http://localhost:5173` and proxies API calls to the backend.
 ## API Endpoints
 
 | Method | Path                       | Description            |
-
 |--------|----------------------------|------------------------|
-
 | POST   | `/api/auth/register`       | Create a new account   |
-
 | POST   | `/api/auth/login`          | Sign in, returns JWT   |
-
 | POST   | `/api/auth/forgot-password`| Send password reset email |
-
 | POST   | `/api/auth/reset-password` | Reset password with token |
 
 ## Email Configuration
@@ -79,21 +70,13 @@ By default, when SMTP is not configured, password reset links are logged to the 
 ```json
 
 {
-
   "Email": {
-
     "SmtpHost": "smtp.example.com",
-
     "SmtpPort": 587,
-
     "SmtpUser": "your-email@example.com",
-
     "SmtpPass": "your-password",
-
     "FromAddress": "noreply@example.com"
-
   }
-
 }
 
 ``` 
@@ -101,13 +84,9 @@ By default, when SMTP is not configured, password reset links are logged to the 
 ## Password Requirements
 
 - Minimum 10 characters
-
 - At least one uppercase letter
-
 - At least one lowercase letter
-
 - At least one digit
-
 
 ## Testing
 
