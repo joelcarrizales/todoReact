@@ -14,8 +14,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+if (!AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName.Contains("xunit.execution")))
+{
+    // Code that only runs when not running tests
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+}
+
 
 builder.Services.AddIdentityCore<IdentityUser>(options =>
 {
@@ -64,12 +69,16 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+if (!AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName.Contains("xunit.execution")))
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    //  db.Database.EnsureDeleted(); // uncomment this line if you want to delete the database on each run (useful for development)
-    db.Database.EnsureCreated();
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        //  db.Database.EnsureDeleted(); // uncomment this line if you want to delete the database on each run (useful for development)
+        db.Database.EnsureCreated();
+    }
 }
+
 
 app.UseCors();
 app.UseAuthentication();
