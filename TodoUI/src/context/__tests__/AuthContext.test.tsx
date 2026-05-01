@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { AuthProvider, useAuth } from '../AuthContext';
 
 // Mock localStorage
@@ -83,8 +84,9 @@ describe('AuthContext', () => {
   });
 
   describe('useAuth hook', () => {
-    it('should login by storing token', () => {
+    it('should login by storing token', async () => {
       // Arrange
+      const user = userEvent.setup();
       const TestComponent = () => {
         const { login, token, isAuthenticated } = useAuth();
 
@@ -105,16 +107,19 @@ describe('AuthContext', () => {
       );
 
       const loginButton = screen.getByText('Login');
-      loginButton.click();
+      await user.click(loginButton);
 
       // Assert
-      expect(screen.getByTestId('token')).toHaveTextContent('new-token');
+      await waitFor(() => {
+        expect(screen.getByTestId('token')).toHaveTextContent('new-token');
+      });
       expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
       expect(localStorage.getItem('token')).toBe('new-token');
     });
 
-    it('should logout by removing token', () => {
+    it('should logout by removing token', async () => {
       // Arrange
+      const user = userEvent.setup();
       localStorage.setItem('token', 'existing-token');
 
       const TestComponent = () => {
@@ -137,10 +142,12 @@ describe('AuthContext', () => {
       );
 
       const logoutButton = screen.getByText('Logout');
-      logoutButton.click();
+      await user.click(logoutButton);
 
       // Assert
-      expect(screen.getByTestId('token')).toHaveTextContent('no-token');
+      await waitFor(() => {
+        expect(screen.getByTestId('token')).toHaveTextContent('no-token');
+      });
       expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
       expect(localStorage.getItem('token')).toBeNull();
     });
@@ -148,18 +155,24 @@ describe('AuthContext', () => {
     it('should throw error when used outside AuthProvider', () => {
       // Arrange
       const TestComponent = () => {
-        useAuth();
-        return <div>Test</div>;
+        try {
+          useAuth();
+          return <div>Test</div>;
+        } catch (error) {
+          return <div>Error: {(error as Error).message}</div>;
+        }
       };
 
-      // Act & Assert
-      expect(() => render(<TestComponent />)).toThrow(
-        'useAuth must be used within an AuthProvider'
-      );
+      // Act
+      const { container } = render(<TestComponent />);
+
+      // Assert
+      expect(container.textContent).toContain('useAuth must be used within an AuthProvider');
     });
 
-    it('should update isAuthenticated based on token', () => {
+    it('should update isAuthenticated based on token', async () => {
       // Arrange
+      const user = userEvent.setup();
       const TestComponent = () => {
         const { login, logout, isAuthenticated } = useAuth();
 
@@ -173,7 +186,7 @@ describe('AuthContext', () => {
       };
 
       // Act & Assert
-      const { rerender } = render(
+      render(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
@@ -181,17 +194,22 @@ describe('AuthContext', () => {
 
       expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
 
-      screen.getByText('Login').click();
-      expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
+      await user.click(screen.getByText('Login'));
+      await waitFor(() => {
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
+      });
 
-      screen.getByText('Logout').click();
-      expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+      await user.click(screen.getByText('Logout'));
+      await waitFor(() => {
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+      });
     });
   });
 
   describe('token management', () => {
-    it('should persist multiple login calls', () => {
+    it('should persist multiple login calls', async () => {
       // Arrange
+      const user = userEvent.setup();
       const TestComponent = () => {
         const { login, token } = useAuth();
 
@@ -211,18 +229,23 @@ describe('AuthContext', () => {
         </AuthProvider>
       );
 
-      screen.getByText('Login 1').click();
-      expect(localStorage.getItem('token')).toBe('token1');
+      await user.click(screen.getByText('Login 1'));
+      await waitFor(() => {
+        expect(localStorage.getItem('token')).toBe('token1');
+      });
 
-      screen.getByText('Login 2').click();
+      await user.click(screen.getByText('Login 2'));
 
       // Assert
-      expect(localStorage.getItem('token')).toBe('token2');
-      expect(screen.getByTestId('token')).toHaveTextContent('token2');
+      await waitFor(() => {
+        expect(localStorage.getItem('token')).toBe('token2');
+        expect(screen.getByTestId('token')).toHaveTextContent('token2');
+      });
     });
 
-    it('should handle empty token string', () => {
+    it('should handle empty token string', async () => {
       // Arrange
+      const user = userEvent.setup();
       const TestComponent = () => {
         const { login, isAuthenticated } = useAuth();
 
@@ -241,10 +264,12 @@ describe('AuthContext', () => {
         </AuthProvider>
       );
 
-      screen.getByText('Login Empty').click();
+      await user.click(screen.getByText('Login Empty'));
 
       // Assert - Empty string should not be considered authenticated
-      expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+      await waitFor(() => {
+        expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+      });
     });
   });
 });
