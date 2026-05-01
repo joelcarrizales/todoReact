@@ -329,4 +329,279 @@ describe('TodosTable', () => {
       }).not.toThrow();
     });
   });
+
+  describe('pagination', () => {
+    it('should render pagination controls when todos exceed items per page', () => {
+      // Arrange
+      const manyTodos = Array.from({ length: 15 }, (_, i) => ({
+        id: i + 1,
+        title: `Todo ${i + 1}`,
+        isCompleted: false,
+        createdAt: '2024-01-01',
+        dueDate: null,
+      }));
+
+      // Act
+      render(
+        <TodosTable
+          todos={manyTodos}
+          onToggle={mockOnToggle}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+          displayArchive={false}
+          itemsPerPage={5}
+        />
+      );
+
+      // Assert
+      expect(screen.getByText(/Page 1 of 3/)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Previous page/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Next page/i })).toBeInTheDocument();
+    });
+
+    it('should not render pagination controls when todos fit in one page', () => {
+      // Act
+      render(
+        <TodosTable
+          todos={mockTodos}
+          onToggle={mockOnToggle}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+          displayArchive={false}
+          itemsPerPage={10}
+        />
+      );
+
+      // Assert
+      expect(screen.queryByText(/Page/)).not.toBeInTheDocument();
+    });
+
+    it('should display correct number of items per page', () => {
+      // Arrange
+      const manyTodos = Array.from({ length: 25 }, (_, i) => ({
+        id: i + 1,
+        title: `Todo ${i + 1}`,
+        isCompleted: false,
+        createdAt: '2024-01-01',
+        dueDate: null,
+      }));
+
+      // Act
+      const { container } = render(
+        <TodosTable
+          todos={manyTodos}
+          onToggle={mockOnToggle}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+          displayArchive={false}
+          itemsPerPage={10}
+        />
+      );
+
+      // Assert
+      const rows = container.querySelectorAll('tbody tr');
+      expect(rows).toHaveLength(10);
+    });
+
+    it('should navigate to next page when next button is clicked', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const manyTodos = Array.from({ length: 15 }, (_, i) => ({
+        id: i + 1,
+        title: `Todo ${i + 1}`,
+        isCompleted: false,
+        createdAt: '2024-01-01',
+        dueDate: null,
+      }));
+
+      // Act
+      const { container, rerender } = render(
+        <TodosTable
+          todos={manyTodos}
+          onToggle={mockOnToggle}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+          displayArchive={false}
+          itemsPerPage={5}
+        />
+      );
+
+      // Initial state - should show todos 1-5
+      expect(screen.getByText('Todo 1')).toBeInTheDocument();
+      expect(screen.queryByText('Todo 6')).not.toBeInTheDocument();
+
+      // Click next button
+      const nextButton = screen.getByRole('button', { name: /Next page/i });
+      await user.click(nextButton);
+
+      // Re-render to update state
+      rerender(
+        <TodosTable
+          todos={manyTodos}
+          onToggle={mockOnToggle}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+          displayArchive={false}
+          itemsPerPage={5}
+        />
+      );
+
+      // Assert - should show todos 6-10 on page 2
+      expect(screen.getByText(/Page 2 of 3/)).toBeInTheDocument();
+    });
+
+    it('should navigate to previous page when previous button is clicked', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const manyTodos = Array.from({ length: 15 }, (_, i) => ({
+        id: i + 1,
+        title: `Todo ${i + 1}`,
+        isCompleted: false,
+        createdAt: '2024-01-01',
+        dueDate: null,
+      }));
+
+      // Act - Start on page 2
+      const { container } = render(
+        <TodosTable
+          todos={manyTodos}
+          onToggle={mockOnToggle}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+          displayArchive={false}
+          itemsPerPage={5}
+        />
+      );
+
+      // Navigate to page 2
+      const nextButton = screen.getByRole('button', { name: /Next page/i });
+      await user.click(nextButton);
+
+      // Verify we're on page 2
+      expect(screen.getByText(/Page 2 of 3/)).toBeInTheDocument();
+
+      // Click previous button
+      const previousButton = screen.getByRole('button', { name: /Previous page/i });
+      await user.click(previousButton);
+
+      // Assert - should be back on page 1
+      expect(screen.getByText(/Page 1 of 3/)).toBeInTheDocument();
+    });
+
+    it('should disable previous button on first page', async () => {
+      // Arrange
+      const manyTodos = Array.from({ length: 15 }, (_, i) => ({
+        id: i + 1,
+        title: `Todo ${i + 1}`,
+        isCompleted: false,
+        createdAt: '2024-01-01',
+        dueDate: null,
+      }));
+
+      // Act
+      render(
+        <TodosTable
+          todos={manyTodos}
+          onToggle={mockOnToggle}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+          displayArchive={false}
+          itemsPerPage={5}
+        />
+      );
+
+      // Assert
+      const previousButton = screen.getByRole('button', { name: /Previous page/i });
+      expect(previousButton).toBeDisabled();
+    });
+
+    it('should disable next button on last page', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const manyTodos = Array.from({ length: 15 }, (_, i) => ({
+        id: i + 1,
+        title: `Todo ${i + 1}`,
+        isCompleted: false,
+        createdAt: '2024-01-01',
+        dueDate: null,
+      }));
+
+      // Act
+      render(
+        <TodosTable
+          todos={manyTodos}
+          onToggle={mockOnToggle}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+          displayArchive={false}
+          itemsPerPage={5}
+        />
+      );
+
+      // Navigate to last page (page 3)
+      const nextButton = screen.getByRole('button', { name: /Next page/i });
+      await user.click(nextButton);
+      await user.click(nextButton);
+
+      // Assert
+      expect(screen.getByText(/Page 3 of 3/)).toBeInTheDocument();
+      const finalNextButton = screen.getByRole('button', { name: /Next page/i });
+      expect(finalNextButton).toBeDisabled();
+    });
+
+    it('should use default items per page of 10 when not specified', () => {
+      // Arrange
+      const manyTodos = Array.from({ length: 25 }, (_, i) => ({
+        id: i + 1,
+        title: `Todo ${i + 1}`,
+        isCompleted: false,
+        createdAt: '2024-01-01',
+        dueDate: null,
+      }));
+
+      // Act
+      const { container } = render(
+        <TodosTable
+          todos={manyTodos}
+          onToggle={mockOnToggle}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+          displayArchive={false}
+        />
+      );
+
+      // Assert
+      expect(screen.getByText(/Page 1 of 3/)).toBeInTheDocument();
+      const rows = container.querySelectorAll('tbody tr');
+      expect(rows).toHaveLength(10);
+    });
+
+    it('should correctly paginate with filtered results', async () => {
+      // Arrange - 5 active todos and 5 archived todos
+      const manyTodos = Array.from({ length: 10 }, (_, i) => ({
+        id: i + 1,
+        title: `Todo ${i + 1}`,
+        isCompleted: i >= 5,
+        createdAt: '2024-01-01',
+        dueDate: null,
+      }));
+
+      // Act
+      const { container } = render(
+        <TodosTable
+          todos={manyTodos}
+          onToggle={mockOnToggle}
+          onDelete={mockOnDelete}
+          onEdit={mockOnEdit}
+          displayArchive={false}
+          itemsPerPage={2}
+        />
+      );
+
+      // Assert - only active todos (5 total), should have 3 pages
+      expect(screen.getByText(/Page 1 of 3/)).toBeInTheDocument();
+      const rows = container.querySelectorAll('tbody tr');
+      expect(rows).toHaveLength(2);
+    });
+  });
 });
